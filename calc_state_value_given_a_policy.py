@@ -84,7 +84,7 @@ for s in grid.states:
 print(R_pi)
 
 # compute the state value matrix V_pi = np.linalg.inv(np.eye(len(grid.states)) - 0.9 * P_pi).dot(R_pi)
-V_pi = np.linalg.inv(np.eye(len(grid.states)) - 0.9 * P_pi).dot(R_pi)
+V_pi = np.linalg.inv(np.eye(len(grid.states)) - grid.gamma * P_pi).dot(R_pi)
 print(V_pi)
 
 # compute the state value matrix V_pi iteratively
