@@ -153,6 +153,19 @@ class Policy:
         else:
             raise ValueError("Input must be a ConditionExpr instance.")
 
+    def fill_uniform(self):
+        """
+        Fill the policy with uniform distribution over actions for each state.
+        """
+        state_action_count : Dict[State, int] = {}
+        for (s, a) in self.policy_dict.keys():
+            if s not in state_action_count:
+                state_action_count[s] = 0
+            state_action_count[s] += 1
+
+        for (s, a) in self.policy_dict.keys():
+            self.policy_dict[(s, a)] = np.float32(1.0 / state_action_count[s])
+
     def __getitem__(self, condition_expr: ConditionExpr) -> np.float32:
         return self.pi(condition_expr)
 
