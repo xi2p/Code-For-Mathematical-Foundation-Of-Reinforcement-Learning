@@ -1,7 +1,7 @@
 import mforl.model
 from mforl.basic import Action, State, Reward, Policy
 import numpy as np
-
+from copy import deepcopy
 
 # model
 grid = mforl.model.GridWorldModel(
@@ -30,6 +30,9 @@ v = np.zeros((len(grid.states)))
 
 ITERATION_LIMIT = 100
 for t in range(ITERATION_LIMIT):
+    v_next = deepcopy(v)
+    policy_next = deepcopy(policy)
+
     for s in grid.states:
         # update policy at every state by choosing max action value
         q_list = []
@@ -50,14 +53,16 @@ for t in range(ITERATION_LIMIT):
 
         # find max q value and update v(s)
         max_q = max(q_list)
-        v[s.uid - 1] = max_q
+        v_next[s.uid - 1] = max_q
         # update policy to be greedy
         max_index = q_list.index(max_q)
         for a in grid.actions:
             if a == a_list[max_index]:
-                policy[a | s] = np.float32(1.0)
+                policy_next[a | s] = np.float32(1.0)
             else:
-                policy[a | s] = np.float32(0.0)
+                policy_next[a | s] = np.float32(0.0)
+    v = v_next
+    policy = policy_next
     print(f"Iteration {t+1}: v = {v}")
 # print final policy
 print("Final Policy:")

@@ -11,6 +11,7 @@ In particular, s'|s, s'|s,a, r|s,a are all instances of ConditionExpr.
 """
 import numpy as np
 from typing import Union, Tuple, Dict, Set
+from copy import deepcopy
 
 
 """
@@ -66,6 +67,9 @@ class State:
     def __or__(self, other):
         return ConditionExpr(self, other)
 
+    def __deepcopy__(self, memodict={}):
+        return State(self.uid)
+
 
 """
 The reward instance has a float32 value representing the reward received by an agent in an environment.
@@ -106,6 +110,9 @@ class Reward:
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    def __deepcopy__(self, memodict={}):
+        return Reward(np.float32(self.value))
+
 
 
 class ConditionExpr:
@@ -125,6 +132,9 @@ class ConditionExpr:
     def __hash__(self):
         return hash((self.outcome, self.condition))
 
+    def __deepcopy__(self, memodict={}):
+        return ConditionExpr(deepcopy(self.outcome), deepcopy(self.condition))
+
 
 """
 A Policy instance stores the probability distribution over actions given states.
@@ -132,6 +142,8 @@ A Policy instance stores the probability distribution over actions given states.
 class Policy:
     def __init__(self, state_space: Set[State], action_space: Set[Action]):
         self.policy_dict : Dict[Tuple[State, Action], np.float32] = {}
+        self.state_space = state_space
+        self.action_space = action_space
 
         # initialize policy with all zero probabilities
         for s in state_space:
@@ -166,6 +178,22 @@ class Policy:
         for (s, a) in self.policy_dict.keys():
             self.policy_dict[(s, a)] = np.float32(1.0 / state_action_count[s])
 
+    def decide(self, state: State) -> Action:
+        """
+        Decide an action based on the current policy for a given state.
+        :param state: The current state.
+        :return: An action chosen according to the policy.
+        """
+        actions = []
+        probabilities = []
+
+        for a in self.action_space:
+            actions.append(a)
+            probabilities.append(self.pi(a | state))
+
+        return np.random.choice(actions, p=probabilities)
+
+
     def __getitem__(self, condition_expr: ConditionExpr) -> np.float32:
         return self.pi(condition_expr)
 
@@ -178,3 +206,8 @@ class Policy:
                 raise ValueError("ConditionExpr must be of the form a|s.")
         else:
             raise ValueError("Input must be a ConditionExpr instance.")
+
+    def __deepcopy__(self, memodict={}):
+        new_policy = Policy(deepcopy(self.state_space), deepcopy(self.action_space))
+        new_policy.policy_dict = deepcopy(self.policy_dict)
+        return new_policy
