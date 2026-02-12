@@ -10,7 +10,6 @@ This implementation is NOT included in the book.
 import sys
 import torch
 import random
-import numpy as np
 from typing import List, Tuple, Dict
 import tqdm
 import torch.nn.functional as F
@@ -34,6 +33,8 @@ grid = GridWorldModel(
     r_forbidden=Reward(torch.tensor(-10.0))
 )
 
+print(grid)
+
 ACTION_TO_INDEX_DICT = {
     grid.ACTION_UP: 0,
     grid.ACTION_DOWN: 1,
@@ -41,8 +42,6 @@ ACTION_TO_INDEX_DICT = {
     grid.ACTION_RIGHT: 3,
     grid.ACTION_STAY: 4,
 }
-
-print(grid)
 
 
 def feature_extractor(state: State) -> torch.Tensor:
@@ -71,7 +70,6 @@ class PolicyNetwork(torch.nn.Module):
             torch.nn.Sigmoid(),
             torch.nn.Linear(hidden_dim, output_dim),
         )
-        # 移除 Softmax，在 forward 中手动应用
 
         for name, param in self.named_parameters():
             if 'weight' in name:
